@@ -6,5 +6,3 @@ torch
 torchvision
 scikit-image
 tqdm
-jupyter
-
