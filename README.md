@@ -1,59 +1,66 @@
-# Noiseprint - Video + Tutorial (Prototipo simples)
+# ================================================================
+# PROJETO: NOISEPRINT - PROTOTIPO (VIDEO + TUTORIAL)
+#
+# HEITOR MACIEL - 10402559
+# VITOR PEPE - 10339754
+# VINICIUS MAGNO - 10401365
+# KAIKI BELLINI BARBOSA - 10402509
+# ================================================================
 
-Noiseprint e uma tecnica de foto forense que aprende um fingerprint caracteristico do modelo de camera. Diferente do PRNU tradicional (ruido de resposta do sensor), o Noiseprint usa uma CNN para destacar padroes de processamento na cadeia de formacao da imagem. Este prototipo academico entrega uma versao simplificada com residual fallback, interface grafica opcional e organizacao pensada para o video/tutorial da disciplina.
+Analise forense digital que reune NoisePrint simplificado, Error Level Analysis (ELA) e PRNU. O foco e demonstrar usabilidade, clareza visual e fluxo linear para investigar autenticidade de fotografias.
 
-## Como executar (Windows)
-### Ambiente
-```
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
+## Estrutura do projeto
+main.py                 # ponto de entrada (PyQt5)
+requirements.txt        # dependencias
+src/noiseprint.py       # extracao NoisePrint
+src/ela.py              # Error Level Analysis
+src/prnu.py             # estimativa PRNU
+ui/main_window.py       # interface grafica PyQt
+utils/image_io.py       # leitura/escrita de imagens
+utils/logging_utils.py  # configuracao de logs
+utils/report.py         # exportacao de relatorio PDF
+samples/demo.ppm        # exemplo colorido
+samples/demo_manipulated.ppm  # exemplo com manipulacao
+outputs/                # gerado em tempo de execucao
 
-### Modo grafico
-```
+## Pre-requisitos
+- Python 3.9+
+- Ambiente virtual:
+  python -m venv .venv
+  .\.venv\Scripts\Activate.ps1
+
+- Instale dependencias:
+  python -m pip install -r requirements.txt
+
+## Execucao
 python main.py
-```
-1. Escolha os arquivos (ou glob) em **Entrada**.
-2. Opcional: selecione pesos reais (`weights/noiseprint.pth`).
-3. Defina pasta de saida e opcoes desejadas.
-4. Clique em **Executar**. Os logs aparecem na janela.
-5. Ao final, use **Abrir pasta de saida** ou **Abrir ultimo resultado**.
 
-### Modo CLI
-```
-python main.py --entrada "data/input\*.jpg" --salvar-heatmap --salvar-overlay
-```
-Opcoes uteis:
-- `--pesos caminho\para\noiseprint.pth`
-- `--preset noiseprint.pth` (procura dentro de `weights/`)
-- `--saida data/output_custom`
-- `--resize-max 2048`
-- `--salvar-intermediarios`
-- `--nivel-log DEBUG`
+### Fluxo da interface
+1. Import Image: arraste/solte ou selecione arquivo; historico visivel; botoes Reset e Help.
+2. NoisePrint / ELA / PRNU: ajuste parametros, clique em "Executar analise" e visualize original vs resultado (zoom/pan disponiveis).
+3. Comparison: compara original com o ultimo mapa gerado.
+4. Report: adicione observacoes e exporte PDF com data, EXIF e imagens.
 
-## Roteiro do video (<= 10 min)
-- 0:00-1:00 - Abertura, apresentacao do grupo, objetivo do tutorial.
-- 1:00-3:00 - Teoria: ruido de sensor, fingerprints, diferenca entre Noiseprint e PRNU.
-- 3:00-7:00 - Demo: executar GUI/CLI em duas imagens (original vs manipulada), mostrar heatmap e overlay.
-- 7:00-8:30 - Limitacoes: sem pesos oficiais, CNN placeholder, situacoes em que o residual falha.
-- 8:30-10:00 - Proximos passos: integrar pesos reais, comparar com PRNU, montar testes controlados.
+## Usabilidade demonstrada
+- Menus intuitivos seguindo o fluxo Import -> Metodo -> Comparison -> Report.
+- Feedback continuo via status bar, painel de logs e mensagens.
+- Prevencao de erros: validacao de formato, alerta de preset ausente, botoes de reset/ajuda.
+- Memorabilidade: interface autoexplicativa, tooltips curtos, historico para repetir analises.
+- Exportacao completa: PNGs, log (outputs/forensic.log) e relatorio PDF.
 
-## Referencias
-- Cozzolino et al., "Noiseprint: a CNN-based camera model fingerprint", 2019.
-- Lukacs et al., "PRNU-based camera identification", 2015.
-- Repositorio oficial Noiseprint: https://github.com/grip-unina/noiseprint
-- Documentacao OpenCV: https://docs.opencv.org/
+## Pesos NoisePrint
+Na aba "Import Image" utilize o campo "Pesos NoisePrint (opcional)" para digitar o caminho do arquivo .pth ou clique em "Selecionar pesos...". O botao "Usar residual" limpa a escolha manual. 
 
-## Aviso
-Nenhum peso real acompanha este prototipo. O modelo incluido e apenas um placeholder para fins didaticos; a demonstracao mostra o fluxo geral antes de plugar a rede treinada.
+O botão "Presets detectados" ajuda a mapear a pasta weights/. 
+Caso nao haja pesos, o modo residual e usado automaticamente.
 
-## Estrutura resumida
-- `main.py` reune funcoes de processamento (carregar_imagem, residual_highpass, normalizar_mapa), CNN placeholder, pipeline em lote com geracao de artefatos (execucao.yaml, manifesto.csv, logs.txt/jsonl, relatorio_execucao.md), alem da CLI e da GUI.
-- `data/input`, `data/output`, `weights` armazenam as imagens de entrada/saida e pesos opcionais (mantidos vazios com `.gitkeep`).
+## Observacoes tecnicas
+- Metodos simplificados para fins academicos (NoisePrint fallback, ELA via recompressao JPEG, PRNU por subtracao suave).
+- Multiplataforma (Windows/Linux). Em macOS substitua os.startfile por open se necessario.
+- Relatorio PDF gerado com FPDF em outputs/<imagem>/.
 
-## Observacoes finais
-- Trabalho academico de Computacao Visual (video-tutorial ate 10 minutos sobre Noiseprint).
-- Cada execucao gera uma pasta `data/output/run_YYYY-MM-DD_HH-MM-SS/` com resultados, metricas por imagem e logs reprodutiveis.
-- CLI e GUI compartilham exatamente a mesma pipeline, garantindo demonstracao pratica consistente.
+## Roadmap sugerido
+- Integrar NoisePrint oficial (CNN) e PRNU completo.
+- Adicionar metricas quantitativas (PSNR, SSIM).
+- Automatizar comparacao entre duas imagens (aba "Comparison").
 
