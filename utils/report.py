@@ -14,7 +14,28 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+import re
+import unicodedata
+
 from fpdf import FPDF
+
+
+def _normalizar_texto(texto: str) -> str:
+    """Normaliza espacos e caracteres especiais antes de enviar ao PDF."""
+    if not texto:
+        return ""
+    texto = unicodedata.normalize("NFKC", texto)
+    for alvo, substituto in (
+        ("\u00a0", " "),
+        ("\u202f", " "),
+        ("\u2007", " "),
+        ("\u2060", ""),
+        ("\ufeff", ""),
+    ):
+        texto = texto.replace(alvo, substituto)
+    texto = texto.replace("&nbsp;", " ")
+    texto = re.sub(r"(?<=\S)&(?=\S)", " ", texto)
+    return texto
 
 
 # ============================================================
@@ -31,16 +52,22 @@ def gerar_relatorio(destino: Path, contexto: Dict[str, str], imagens: List[Tuple
 
     pdf.set_font("Arial", size=12)
     for chave, valor in contexto.items():
-        pdf.cell(0, 8, f"{chave}: {valor}", ln=True)
+        chave_limpo = _normalizar_texto(chave)
+        valor_limpo = _normalizar_texto(valor)
+        linha = f"{chave_limpo}: {valor_limpo}".rstrip()
+        if "\n" in linha:
+            pdf.multi_cell(0, 8, linha, align="L")
+        else:
+            pdf.cell(0, 8, linha, ln=True)
 
     for titulo, caminho, legenda in imagens:
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
-        pdf.cell(0, 10, titulo, ln=True)
+        pdf.cell(0, 10, _normalizar_texto(titulo), ln=True)
         if legenda:
             pdf.ln(4)
             pdf.set_font("Arial", size=11)
-            pdf.multi_cell(0, 8, legenda)
+            pdf.multi_cell(0, 8, _normalizar_texto(legenda), align="L")
             pdf.ln(2)
         pdf.image(str(caminho), w=180)
 
